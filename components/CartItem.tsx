@@ -52,7 +52,6 @@ export function CartItem({ id, quantity }: CartItemProps) {
                         <div className="text-gray-500 text-xs">{itemData?.price}BTC</div>
                     </div>
                 </div>
-                <div className="ml-24">{itemData && Math.round((itemData.price * quantity) * 100) / 100}BTC</div>
                 <Button className="ml-2 hover:bg-zinc-300 border-solid border-2 border-red-500 bg-transparent text-red-500" onClick={() => removeFromCart(id)}>&times;</Button>
             </div>
         </Stack>

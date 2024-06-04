@@ -56,7 +56,7 @@ export function ShoppingCart() {
           <div className="ms-auto text-sm text-gray-500">
             {
               totalPrice !== 0 &&
-              `Razem: ${totalPrice.toFixed(2)} BTC`
+              `Razem: ${totalPrice.toFixed(5)} BTC`
             }
           </div>
           
@@ -64,7 +64,7 @@ export function ShoppingCart() {
             {!selectedOption || cartQuantity === 0 ? (
               null
             ) :
-              `Razem ${totalPrice !== 0 && (totalPrice + deliveryCost).toFixed(2)} BTC`
+              `Razem ${totalPrice !== 0 && (totalPrice + deliveryCost).toFixed(5)} BTC`
             }
           </div>
           <div className="ms-auto text-base text-white">
