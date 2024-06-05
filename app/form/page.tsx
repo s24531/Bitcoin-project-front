@@ -148,7 +148,7 @@ export default function DeliveryForm() {
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
-                                <Link href="/form/submit">
+                                <Link href="/form/payment">
                                     <Button type="submit">Tak</Button>
                                 </Link>
                             </DialogFooter>

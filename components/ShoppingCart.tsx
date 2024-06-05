@@ -68,7 +68,7 @@ export function ShoppingCart() {
             }
           </div>
           <div className="ms-auto text-base text-white">
-            {pathname === "/form" || cartQuantity === 0 ? (
+            {pathname === "/form" || pathname === "/form/payment" || cartQuantity === 0 ? (
               null
             ) :
               <Link href={`/form`} className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded">

@@ -22,7 +22,7 @@ export function CartItem({ id, quantity }: CartItemProps) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`http://localhost:3000/api/tools/${id}`)
+        fetch(`http://localhost:3000/api/planes/${id}`)
             .then(response => response.json())
             .then(data => {
                 setItemData(data);

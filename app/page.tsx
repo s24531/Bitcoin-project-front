@@ -17,12 +17,12 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const fetchToolsData = async () => {
-      const response = await fetch('http://localhost:3000/api/tools');
+    const fetchPlanesData = async () => {
+      const response = await fetch('http://localhost:3000/api/planes');
       const data = await response.json();
       setProducts(data);
     };
-    fetchToolsData();
+    fetchPlanesData();
   }, []);
 
   const [toolsData, setProducts] = useState<ToolsProps[]>([]);
