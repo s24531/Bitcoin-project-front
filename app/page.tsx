@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchPlanesData = async () => {
-      const response = await fetch('http://localhost:3000/api/planes');
+      const response = await fetch('http://localhost:3001/api/planes');
       const data = await response.json();
       setProducts(data);
     };

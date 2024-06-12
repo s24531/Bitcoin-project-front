@@ -25,7 +25,7 @@ export function CommentForm({ product_id }: CommentFormProps) {
   });
 
   const onSubmit = (data: any) => {
-    fetch('http://localhost:3000/api/comments', {
+    fetch('http://localhost:3001/api/comments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
