@@ -49,7 +49,7 @@ export function CartItem({ id, quantity }: CartItemProps) {
                                 </div>
                             )}
                         </div>
-                        <div className="text-gray-500 text-xs">{itemData?.price}BTC</div>
+                        <div className="text-gray-500 text-xs">{itemData?.price} BTC</div>
                     </div>
                 </div>
                 <Button className="ml-2 hover:bg-zinc-300 border-solid border-2 border-red-500 bg-transparent text-red-500" onClick={() => removeFromCart(id)}>&times;</Button>

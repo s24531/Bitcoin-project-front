@@ -1,5 +1,5 @@
 "use client"
-import React, { ReactNode, createContext, useContext, useReducer } from "react";
+import React, { ReactNode, createContext, useContext, useReducer, useEffect } from "react";
 
 type ShoppingCartProviderProps = {
     children: ReactNode;
@@ -50,7 +50,17 @@ function cartReducer(state: CartItem[], action: Action): CartItem[] {
 }
 
 export function ShoppingCartProvider({ children }: ShoppingCartProviderProps) {
-    const [cartItems, dispatch] = useReducer(cartReducer, []);
+    const [cartItems, dispatch] = useReducer(cartReducer, [], () => {
+        if (typeof window !== 'undefined') {
+            const localData = localStorage.getItem('cartItems');
+            return localData ? JSON.parse(localData) : [];
+        }
+        return [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }, [cartItems]);
 
     const getItemQuantity = (id: number) => {
         return cartItems.find(item => item.id === id)?.quantity || 0;
@@ -76,10 +86,10 @@ export function ShoppingCartProvider({ children }: ShoppingCartProviderProps) {
     const totalPrice = cartItems.reduce((total, cartItem) => total + cartItem.price * cartItem.quantity, 0);
 
     return (
-  <ShoppingCartContext.Provider value={{ getItemQuantity, increaseCartQuantity, decreaseCartQuantity, removeFromCart, cartQuantity, cartItems, totalPrice, clearCart }}>
-    {children}
-  </ShoppingCartContext.Provider>
-);
+        <ShoppingCartContext.Provider value={{ getItemQuantity, increaseCartQuantity, decreaseCartQuantity, removeFromCart, cartQuantity, cartItems, totalPrice, clearCart }}>
+            {children}
+        </ShoppingCartContext.Provider>
+    );
 }
 
 export const useShoppingCart = () => {
