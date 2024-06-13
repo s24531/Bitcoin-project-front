@@ -33,7 +33,7 @@ export default function Page({ params }: { params: any }) {
 
     useEffect(() => {
         if (id) {
-            fetch(`http://localhost:3000/api/tools/product/details/${id}`)
+            fetch(`http://localhost:3001/api/planes/product/details/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     setDetails([data]);
@@ -42,7 +42,7 @@ export default function Page({ params }: { params: any }) {
     }, [id]);
 
     useEffect(() => {
-        fetch(`http://localhost:3000/api/comments/${id}`)
+        fetch(`http://localhost:3001/api/comments/${id}`)
             .then(response => response.json())
             .then(data => {
                 console.log(data)

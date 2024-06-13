@@ -19,7 +19,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-
 const formSchema = z.object({
     name: z.string(),
     surname: z.string(),
@@ -56,7 +55,8 @@ export default function DeliveryForm() {
     };
 
     const handleSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log(values)
+        localStorage.setItem('formData', JSON.stringify(values));
+        // Remove file generation code here
     }
 
     return (

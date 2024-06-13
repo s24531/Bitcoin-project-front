@@ -1,41 +1,37 @@
-// Importowanie niezbędnych zależności
+"use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useShoppingCart } from "../../../context/ShoppingCartContext"; 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
+import { saveAs } from 'file-saver';
 
-// Komponent BitcoinWallet do obsługi płatności Bitcoin
 const BitcoinWallet: React.FC = () => {
-  // Stan komponentu
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>(''); // URL wygenerowanego kodu QR
-  const [address, setAddress] = useState<string>(''); // Adres portfela Bitcoin
-  const [amount, setAmount] = useState<number>(0); // Kwota do zapłaty
-  const [balance, setBalance] = useState<number>(0); // Saldo portfela
-  const [error, setError] = useState<string | null>(null); // Błąd (jeśli wystąpi)
-  const [alert, setAlert] = useState<string>(''); // Alert (np. o nowej płatności)
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>(''); 
+  const [address, setAddress] = useState<string>(''); 
+  const [amount, setAmount] = useState<number>(0); 
+  const [balance, setBalance] = useState<number>(0); 
+  const [error, setError] = useState<string | null>(null); 
+  const [alert, setAlert] = useState<string>(''); 
 
-  // Użycie kontekstu koszyka zakupowego do pobrania całkowitej kwoty
-  const { totalPrice } = useShoppingCart();
+  const { totalPrice, cartItems } = useShoppingCart();
 
-  // Aktualizacja kwoty do zapłaty przy zmianie wartości w koszyku
   useEffect(() => {
     setAmount(totalPrice);
   }, [totalPrice]);
 
-  // Generowanie adresu i kodu QR dla płatności
   useEffect(() => {
     const fetchAddressAndGenerateQr = async () => {
       try {
-        // Pobieranie adresu portfela
         const addressResponse = await axios.get('http://localhost:3001/api/generate-address');
         const newAddress = addressResponse.data.address;
         setAddress(newAddress);
 
-        // Generowanie kodu QR jeśli adres i kwota są poprawne
         if (newAddress && amount > 0) {
           const qrResponse = await axios.post('http://localhost:3001/api/generate-qr', { address: newAddress, amount });
           setQrCodeUrl(qrResponse.data.qrCodeUrl);
+
+          appendPaymentDetailsToFile(newAddress, amount);
         } else {
           setError('Address or amount is missing.');
         }
@@ -49,7 +45,6 @@ const BitcoinWallet: React.FC = () => {
     }
   }, [amount]);
 
-  // Sprawdzanie salda portfela
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -57,7 +52,7 @@ const BitcoinWallet: React.FC = () => {
         const newBalance = response.data.balance;
         if (newBalance > balance) {
           setAlert('New payment received!');
-          setTimeout(() => setAlert(''), 5000); // Ukrywanie alertu po 5 sekundach
+          setTimeout(() => setAlert(''), 5000);
         }
         setBalance(newBalance);
       } catch (error: any) {
@@ -65,13 +60,46 @@ const BitcoinWallet: React.FC = () => {
       }
     };
 
-    const intervalId = setInterval(fetchBalance, 60000); // Sprawdzanie salda co minutę
+    const intervalId = setInterval(fetchBalance, 60000); 
     fetchBalance();
 
     return () => clearInterval(intervalId);
   }, [balance]);
 
-  // Renderowanie komponentu
+  const appendPaymentDetailsToFile = (address: string, amount: number) => {
+    const formData = localStorage.getItem('formData');
+    const cartData = localStorage.getItem('cartItems');
+    if (!formData) {
+      console.error('Form data is missing.');
+      return;
+    }
+
+    const parsedFormData = JSON.parse(formData);
+    const parsedCartData = cartData ? JSON.parse(cartData) : [];
+    const cartItemsText = parsedCartData.map((item: any) => `Produkt ID: ${item.id}, Ilość: ${item.quantity}, Cena: ${item.price} BTC`).join('\n');
+    
+    const content = `
+Dane klienta:
+Imię: ${parsedFormData.name}
+Nazwisko: ${parsedFormData.surname}
+Adres: ${parsedFormData.address}
+Miasto: ${parsedFormData.city}
+Kod pocztowy: ${parsedFormData.postalCode}
+Państwo: ${parsedFormData.country}
+Numer telefonu: ${parsedFormData.phoneNumber}
+Email: ${parsedFormData.email}
+
+Produkty w koszyku:
+${cartItemsText}
+
+Bitcoin Payment Details:
+Address: ${address}
+Amount: ${amount} BTC
+    `;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, 'form-data.txt');
+  };
+
   return (
     <div className="container mx-auto mt-4">
       <h1 className="text-center text-3xl font-bold mb-4">Bitcoin Payment</h1>
@@ -97,5 +125,4 @@ const BitcoinWallet: React.FC = () => {
   );
 };
 
-// Eksportowanie komponentu
 export default BitcoinWallet;

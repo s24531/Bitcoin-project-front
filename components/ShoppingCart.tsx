@@ -23,10 +23,8 @@ import { Stack } from "react-bootstrap";
 import Link from "next/link";
 import { useState } from "react";
 
-
 export function ShoppingCart() {
-
-  const { cartQuantity, cartItems, totalPrice } = useShoppingCart();
+  const { cartQuantity, cartItems, totalPrice, increaseCartQuantity } = useShoppingCart();
   const [selectedOption, setSelectedOption] = useState('');
   let deliveryCost = 0;
   if (selectedOption === 'pack') {
@@ -35,6 +33,10 @@ export function ShoppingCart() {
     deliveryCost = 15;
   }
   const pathname = usePathname();
+
+  const handleAddToCart = (id: number, name: string, price: number) => {
+    increaseCartQuantity(id, price);
+  };
 
   return (
     <Sheet>
@@ -79,6 +81,5 @@ export function ShoppingCart() {
         </div>
       </SheetContent>
     </Sheet>
-
   )
 }
