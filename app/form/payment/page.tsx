@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useShoppingCart } from "../../../context/ShoppingCartContext"; 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
-import { saveAs } from 'file-saver';
 
 const BitcoinWallet: React.FC = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>(''); 
@@ -14,7 +13,7 @@ const BitcoinWallet: React.FC = () => {
   const [error, setError] = useState<string | null>(null); 
   const [alert, setAlert] = useState<string>(''); 
 
-  const { totalPrice, cartItems } = useShoppingCart();
+  const { totalPrice } = useShoppingCart();
 
   useEffect(() => {
     setAmount(totalPrice);
@@ -46,17 +45,22 @@ const BitcoinWallet: React.FC = () => {
   }, [amount]);
 
   useEffect(() => {
+    if (!address) return;
+    sendPaymentDetailsToBackend(address, amount, 'No payment received from this address');
+
     const fetchBalance = async () => {
+      if (!address) return; 
+    
       try {
-        const response = await axios.get('http://localhost:3001/check-balance');
-        const newBalance = response.data.balance;
-        if (newBalance > balance) {
-          setAlert('New payment received!');
-          setTimeout(() => setAlert(''), 5000);
-        }
-        setBalance(newBalance);
+        const response = await axios.post('http://localhost:3001/api/check-payment', { address, amount });
+        let status = response.data.message;
+        console.log('Payment status:', status);
+        if (status === 'Payment received' || status === 'The amount is less than the required')
+          {
+            await axios.put('http://localhost:3001/api/edit-details', { address, status });
+          }
       } catch (error: any) {
-        console.error('Error fetching balance:', error);
+        console.error('Error fetching balance:', error.message);
       }
     };
 
@@ -64,7 +68,35 @@ const BitcoinWallet: React.FC = () => {
     fetchBalance();
 
     return () => clearInterval(intervalId);
-  }, [balance]);
+  }, [balance, address, amount]);
+
+
+  const sendPaymentDetailsToBackend = async (address: string, amount: number, paymentStatus: string) => {
+    const formData = localStorage.getItem('formData');
+    const cartData = localStorage.getItem('cartItems');
+    if (!formData || !cartData) {
+      console.error('Form data or cart items are missing.');
+      return;
+    }
+
+    const parsedFormData = JSON.parse(formData);
+    const parsedCartData = JSON.parse(cartData);
+
+    try {
+      await axios.post('http://localhost:3001/api/submit-payment-details', {
+        customer: parsedFormData,
+        cartItems: parsedCartData,
+        payment: {
+          address,
+          amount,
+          status: paymentStatus,
+        },
+      });
+      console.log('Payment details sent to backend successfully.');
+    } catch (error: any) {
+      console.error('Error sending payment details to backend:', error.message);
+    }
+  };
 
   const appendPaymentDetailsToFile = (address: string, amount: number) => {
     const formData = localStorage.getItem('formData');
@@ -73,31 +105,6 @@ const BitcoinWallet: React.FC = () => {
       console.error('Form data is missing.');
       return;
     }
-
-    const parsedFormData = JSON.parse(formData);
-    const parsedCartData = cartData ? JSON.parse(cartData) : [];
-    const cartItemsText = parsedCartData.map((item: any) => `Produkt ID: ${item.id}, Ilość: ${item.quantity}, Cena: ${item.price} BTC`).join('\n');
-    
-    const content = `
-Dane klienta:
-Imię: ${parsedFormData.name}
-Nazwisko: ${parsedFormData.surname}
-Adres: ${parsedFormData.address}
-Miasto: ${parsedFormData.city}
-Kod pocztowy: ${parsedFormData.postalCode}
-Państwo: ${parsedFormData.country}
-Numer telefonu: ${parsedFormData.phoneNumber}
-Email: ${parsedFormData.email}
-
-Produkty w koszyku:
-${cartItemsText}
-
-Bitcoin Payment Details:
-Address: ${address}
-Amount: ${amount} BTC
-    `;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, 'form-data.txt');
   };
 
   return (
@@ -115,12 +122,12 @@ Amount: ${amount} BTC
         {qrCodeUrl ? (
           <img src={qrCodeUrl} alt="QR Code for Bitcoin Payment" className="mx-auto" />
         ) : (
-          <p>Loading QR code...</p>
+          <div>Loading QR code...</div>
         )}
-        <p className="mt-2 text-center">Amount: {amount} BTC</p>
-        <p className="mt-2 text-center">Address: {address}</p>
+        <div className="mt-2 text-center">Amount: {amount.toFixed(5)} BTC</div>
+        <div className="mt-2 text-center">Address: {address}</div>
       </div>
-      {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
+      {error && <div className="text-red-500 mt-2 text-center">{error}</div>}
     </div>
   );
 };
